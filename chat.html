@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"/>
+    <meta content="telephone=no,email=no" name="format-detection">
+    <!--禁止自动识别电话号码和邮箱-->
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <!--苹果手机：会删除默认的工具栏和菜单栏，网站开启对web app程序的支持-->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+    <!--苹果手机：在web app应用下状态条（屏幕顶部条）的颜色,默认值为default（白色），可以定为black（黑色）和black-translucent（灰色半透明）。-->
+    <meta name="apple-touch-fullscreen" content="yes"/>
+    <!--苹果手机：如果把一个web app添加到了主屏幕中，那么从主屏幕中打开这个web app则全屏显示-->
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/chat.css">
+    <link rel="stylesheet" href="css/common.css">
+    <script src="../js/jquery-3.3.1.js"></script>
+    <script src="../js/layer.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="js/service.js"></script>
+    <script src="js/webim.js"></script>
+    <title>聊天</title>
+</head>
+<body>
+<div id="vueData">
+    <!--头部-->
+    <header>
+        <!--添加-->
+        <div class="title_header dis_flex">
+            <div>
+                <img src="img/icon_message.png" alt="">
+            </div>
+            <div>
+                <span>聊天</span>
+            </div>
+            <div>
+                <img src="img/icon_link_add.png" alt="">
+            </div>
+        </div>
+    </header>
+    <!--主体-->
+    <div class="body">
+        <div v-if="recentContact.length>0" v-for="(item,index) in recentContact" class="dis_flex city_list_div" @click="gotoSessionView(index)">
+            <div>
+                <img :src="item.Image?item.Image:'img/portrait.png'" alt="">
+            </div>
+            <div class="dis_flex">
+                <div>
+                    <!--不是SVIP 去掉text_SVIP-->
+                    <span v-if="item.Nick==''">[临时会话]</span>
+                    <span>{{item.Nick}}</span>
+                    <!--性别为男 text_sex_off 变成 text_sex_on-->
+                    <div :class="item.Gender=='男'?'dis_inli text_sex_on bg_red_vip':'dis_inli text_sex_off bg_red_vip'">
+                        <span>{{item.Gender}}</span>
+                    </div>
+                    <!--性别为男 text_svip 变成 text_vip-->
+                    <!--<span class="text_svip">SVIP</span>-->
+                </div>
+                <div class="col_hui">
+                    <!--<span>[WiFi在线]</span>-->
+                    <span>{{item.MsgShow}}</span>
+                </div>
+            </div>
+            <div class="dis_flex">
+                <span>{{item.MsgTimeStamp}}</span>
+            </div>
+            <div v-if="item.UnreadMsgCount>0" class="text_left_div">
+                <span>{{item.UnreadMsgCount}}</span>
+            </div>
+        </div>
+        <div class="dis_flex city_list_div" v-else><span>没人撩你</span></div>
+    </div>
+    <!--尾部-->
+    <footer>
+        <div class="foot_div">
+            <div class="foot_ul dis_flex">
+                <!--首页-->
+                <a href="index.html" class="foot_li dis_flex">
+                    <img id="pic" src="img/index.png" alt="">
+                    <span class="dis_inli col_hui">首页</span>
+                </a>
+                <!--聊天-->
+                <a href="javascript:;" class="foot_li dis_flex">
+                    <img src="img/chat.png" alt="">
+                    <span class="dis_inli col_hui">聊天</span>
+                </a>
+                <!--发布-->
+                <a href="javascript:;" class="foot_li dis_flex">
+                    <div>
+                        <span class="dis_inli">+</span>
+                    </div>
+                    <span class="dis_inli col_hui">发布</span>
+                </a>
+                <!--好友-->
+                <a href="friends.html" class="foot_li dis_flex">
+                    <img src="img/friends.png" alt="">
+                    <span class="dis_inli col_hui">好友</span>
+                </a>
+                <!--我的-->
+                <a href="personal.html" class="foot_li dis_flex">
+                    <img src="img/personal.png" alt="">
+                    <span class="dis_inli col_hui">我的</span>
+                </a>
+            </div>
+            <div class="dis_none foot_div_ul">
+                <div class="dis_flex">
+                    <a href="javascript:" @click="forward('release_hd.html')" class="dis_flex">
+                        <img src="img/activity_1.png" alt="">
+                        <span>发活动</span>
+                    </a>
+                    <a href="javascript:" @click="forward('release_dt.html')" class="dis_flex">
+                        <img src="img/dynamic.png" alt="">
+                        <span>发动态</span>
+                    </a>
+                    <img src="img/icon_publish_cross.png" alt="">
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="js/webim_handler.js"></script>
+<script type="text/javascript">
+    let localUser = localStorage.getItem('localUser');
+    if (localUser) {
+        localUser = JSON.parse(localUser);
+    }
+    var vm = new Vue({
+        el: '#vueData',
+        data: {
+            recentContact: []
+        },
+        methods: {
+            forward(view) {
+                gotoReleaseView(view);
+            },
+            gotoSessionView(key) {
+                let contact = vm.recentContact[key];
+                for (let i in vm.recentContact) {
+                    if (contact.To_Account === vm.recentContact[i].To_Account) {
+                        vm.recentContact[i].UnreadMsgCount = 0;
+                        break;
+                    }
+                }
+                location.href = 'interface.html?toUserId=' + contact.To_Account + '&toUserName=' + contact.Nick + '';
+            }
+        }
+    });
+    $(document).ready(function () {
+        //底部当前的图片更换和文字变色
+        $(".foot_li:nth-child(2)>img").attr('src', 'img/personal_1.png');
+        $(".foot_li:nth-child(2)>span").css('color', '#5970FF');
+        //点击活动显示/隐藏
+        $('.foot_li:nth-child(3)').click(function () {
+            $('.foot_div_ul').toggle()
+        });
+        $('.foot_div_ul>div>img').click(function () {
+            $('.foot_div_ul').toggle()
+        });
+    });
+
+    //连接状态通知处理
+    function onConnNotifyback(obj) {
+    }
+
+    function newMessageNotification(obj) {
+        let atList = false;
+        for (let i in vm.recentContact) {
+            if (obj.fromAccount === vm.recentContact[i].To_Account) {
+                atList = true;
+                vm.recentContact[i].UnreadMsgCount += 1;
+                vm.recentContact[i].MsgShow = obj.content;
+                break;
+            }
+        }
+        if (!atList) {
+            vm.recentContact.push({
+                MsgShow: obj.content,
+                MsgTimeStamp: obj.time,
+                To_Account: obj.fromAccount,
+                isTouchMove: false,
+                UnreadMsgCount: 1,
+                Type: obj.Type
+            });
+            searchProfileByUserId([obj.fromAccount], function (res) {
+                $.each(vm.recentContact, function (i, item) {
+                    if (res[0].To_Account === item.To_Account) {
+                        item.Nick = res[0].Nick;
+                        item.Gender = res[0].Gender;
+                        item.Image = res[0].Image;
+                        vm.recentContact[i] = item;
+                        return false;
+                    }
+                });
+            });
+        }
+    }
+
+    $(function () {
+        if (localUser) {
+            initIM(localUser, function () {
+                webim.getRecentContactList({
+                    'Count': 10 //最近的会话数 ,最大为 100
+                }, function (resp) {
+                    if (resp.SessionItem) {
+                        let ids = [];
+                        $.each(resp.SessionItem, function (i, item) {
+                            ids.push(item.To_Account);
+                            item.MsgTimeStamp = getLocalTime(item.MsgTimeStamp);
+                            item.isTouchMove = false;
+                            vm.recentContact.push(item);
+                        });
+                        searchProfileByUserId(ids, function (res) {
+                            let newContact = [];
+                            $.each(vm.recentContact, function (i, item) {
+                                if (res[i].To_Account === item.To_Account) {
+                                    item.Nick = res[i].Nick;
+                                    item.Gender = res[i].Gender;
+                                    item.Image = res[i].Image;
+                                    newContact.push(item);
+                                    return true;
+                                }
+                            });
+                            vm.recentContact = newContact;
+                        });
+                    }
+                });
+            });
+        }
+    });
+</script>
+</body>
+</html>
